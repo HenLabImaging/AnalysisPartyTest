@@ -5,11 +5,15 @@ from shutil import copy, copytree
 import argparse
 import sys
 
-def motion(datadir):
-	
+def motion(datadir,app,X,Y):
 	sequences = [sima.Sequence.create('TIFF', datadir)]
-	mc_approach = sima.motion.PlaneTranslation2D(max_displacement=[15, 30])
-	dataset = mc_approach.correct(sequences, 'example_translation2D.sima')
+	
+	if(app=='2D' or app is None):	
+		mc_approach = sima.motion.PlaneTranslation2D(max_displacement=[X, Y])
+#	mc_approach=sima.motion.HiddenMarkov2D(granularity='row',max_displacement=[X,Y],verbose=False)
+	else:
+		 mc_approach=sima.motion.HiddenMarkov2D(granularity='row',max_displacement=[X,Y],verbose=False)
+	dataset = mc_approach.correct(sequences, 'HMM_model.sima')
 	dataset.export_frames([[['frames.tif']]], fmt='TIFF16')
 	
 
@@ -19,11 +23,13 @@ def main(argv):
 	argParser=argparse.ArgumentParser()
 	argParser.add_argument('-d',"--signalFile", action="store", type=str, default='',
  	   help="the signal pickle file to plot")
-
-
+	argParser.add_argument('-x','--Xdisp',action="store",type=int,default=10,help='-x disp')
+	argParser.add_argument('-y','--Ydisp',action="store",type=int,default=10,help='-y disp')
+	
+	argParser.add_argument('-m',"--method", action="store", type=str, default=None,help='MC method')
 	args = argParser.parse_args()
 	
-	motion(args.signalFile)
+	motion(args.signalFile,args.method,args.Xdisp,args.Ydisp)
 
 
 
